@@ -3,6 +3,8 @@ import Burger from '../../components/burger/burger'
 import BuildControls from '../../components/burger/buildcontrols/buildcontrols'
 import Modal from '../../components/ui/modal/modal'
 import OrderSummary from '../../components/burger/ordersummary/ordersummary'
+import Spinner from '../../components/ui/spinner/spinner'
+import enableErrorCatching from '../../components/catcherrors/catcherrors'
 import axiosOrder from '../../axios-orders'
 
 const BURGER_BASE_PRICE = 4
@@ -17,7 +19,8 @@ class BurgerBuilder extends Component {
             {name: 'Meat', price: 1, count: 0}
         ],
         extraPrice: 0,
-        purchasing: false
+        purchasing: false,
+        sendingOrder: false
     }
 
     getTotalPrice = () => this.state.extraPrice + BURGER_BASE_PRICE
@@ -41,6 +44,7 @@ class BurgerBuilder extends Component {
     }
 
     purchaseContinueHandler = () => {
+        this.setState({sendingOrder: true})
         const order = {
             ingredients: this.state.ingredients
                 .filter(el => el.count > 0)
@@ -53,8 +57,8 @@ class BurgerBuilder extends Component {
             }
         }
         axiosOrder.post('/orders.json', order)
-            .then(response => console.log(response))
-            .catch(error => console.log(error))
+            .then(response => this.setState({purchasing: false, sendingOrder: false}))
+            .catch(error => this.setState({purchasing: false, sendingOrder: false}))
     }
     
     render() {        
@@ -62,6 +66,17 @@ class BurgerBuilder extends Component {
         const totalPriceString = this.getTotalPrice().toFixed(2)
         const noIngredients = this.state.extraPrice < .001 //accounting for math errors with floats
         const purchasing = this.state.purchasing
+        let orderSummaryOrSpinner = <Spinner />
+        if (!this.state.sendingOrder) {
+            orderSummaryOrSpinner = (
+                <OrderSummary
+                        ingredients={ings}
+                        totalPriceString={totalPriceString}
+                        cancelHandler={() => this.purchaseHandler(false)}
+                        continueHandler={this.purchaseContinueHandler}
+                />
+            )
+        }
         return (
             <React.Fragment>
                 <Burger
@@ -71,12 +86,8 @@ class BurgerBuilder extends Component {
                 <Modal
                     show={purchasing}
                     backdropClicked={() => this.purchaseHandler(false)}>
-                    <OrderSummary
-                        ingredients={ings}
-                        totalPriceString={totalPriceString}
-                        cancelHandler={() => this.purchaseHandler(false)}
-                        continueHandler={this.purchaseContinueHandler}
-                /></Modal>
+                        {orderSummaryOrSpinner}
+                    </Modal>
                 <BuildControls
                     ingredients={ings.map(ing => {
                         return {name: ing.name, disableMinus: ing.count <= 0}
@@ -91,4 +102,4 @@ class BurgerBuilder extends Component {
     }
 }
 
-export default BurgerBuilder
+export default enableErrorCatching(BurgerBuilder, axiosOrder)
