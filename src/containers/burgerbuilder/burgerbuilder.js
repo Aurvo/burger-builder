@@ -12,15 +12,17 @@ const BURGER_BASE_PRICE = 4
 class BurgerBuilder extends Component {
     
     state = {
-        ingredients: [
-            {name: 'Salad', price: .6, count: 0},
-            {name: 'Bacon', price: .5, count: 0},
-            {name: 'Cheese', price: .4, count: 0},
-            {name: 'Meat', price: 1, count: 0}
-        ],
+        ingredients: null,
         extraPrice: 0,
         purchasing: false,
-        sendingOrder: false
+        sendingOrder: false,
+        ingredientLoadError: false
+    }
+
+    componentDidMount() {
+        axiosOrder.get('/Ingredients.json')
+        .then(res => this.setState({ingredients: res.data}))
+        .catch(err => this.setState({ingredientLoadError: true}))
     }
 
     getTotalPrice = () => this.state.extraPrice + BURGER_BASE_PRICE
@@ -45,10 +47,11 @@ class BurgerBuilder extends Component {
 
     purchaseContinueHandler = () => {
         this.setState({sendingOrder: true})
+        const ingsObj = {}
+        this.state.ingredients.filter(el => el.count > 0)
+            .forEach(el => ingsObj[el.name] = el.count)
         const order = {
-            ingredients: this.state.ingredients
-                .filter(el => el.count > 0)
-                .map(el => {return {name: el.name, count: el.count}}),
+            ingredients: ingsObj,
             price: this.getTotalPrice(),
             customer: {
                 name: 'Dummey the Dumb Dumb',
@@ -62,7 +65,9 @@ class BurgerBuilder extends Component {
     }
     
     render() {        
+        if (this.state.ingredientLoadError) return <p>Ingredient data could not be loaded.</p>
         const ings = this.state.ingredients
+        if (!ings) return <Spinner />
         const totalPriceString = this.getTotalPrice().toFixed(2)
         const noIngredients = this.state.extraPrice < .001 //accounting for math errors with floats
         const purchasing = this.state.purchasing

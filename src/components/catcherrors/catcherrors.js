@@ -7,15 +7,20 @@ const catcherrors = (WrappedComponent, axiosInstance) => {
             error: null
         }
         
-        componentDidMount() {
-            axiosInstance.interceptors.request.use(req => {
+        componentWillMount() {
+            this.requestInterceptor = axiosInstance.interceptors.request.use(req => {
                 this.setState({error: null})
                 return req
             })
-            axiosInstance.interceptors.response.use(res => res, error => {
+            this.responseInterceptor = axiosInstance.interceptors.response.use(res => res, error => {
                 this.setState({error: error})
                 return Promise.reject()
             })
+        }
+
+        componentWillUnmount() {
+            axiosInstance.interceptors.request.eject(this.requestInterceptor)
+            axiosInstance.interceptors.response.eject(this.responseInterceptor)
         }
 
         errorConfirmedHandler = () => {
@@ -28,7 +33,7 @@ const catcherrors = (WrappedComponent, axiosInstance) => {
                 <React.Fragment>
                     <Modal
                         show={error}
-                        clicked={this.errorConfirmedHandler}
+                        backdropClicked={this.errorConfirmedHandler}
                     >{error ? error.message : null}</Modal>
                     <WrappedComponent {...this.props}/>
                 </React.Fragment>
