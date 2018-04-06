@@ -1,0 +1,37 @@
+.Input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.Label {
+    font-weight: bold;
+    display: block;
+    text-align: left;
+    margin-bottom: 8px;
+}
+
+.InputElement {
+    outline: none;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font: inherit;
+    padding: 6px 10px;
+    display: block;
+    width: 100%;
+}
+
+.InputElement:focus, .InputElement:hover {
+    outline: none;
+    background-color: #eee;
+}
+
+.Invalid {
+    border: 1px solid red;
+    background-color: #fbe3e3;
+}
+
+.Invalid:focus, .Invalid:hover {
+    outline: none;
+    background-color: #fab2b2;
+}
