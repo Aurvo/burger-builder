@@ -13,7 +13,7 @@ class Checkout extends Component {
         this.props.history.replace('/checkout/contact-data')
     }
 
-    render() {        
+    render() {
         return (
             <div>
                 <CheckoutSummary
@@ -30,6 +30,6 @@ class Checkout extends Component {
     }
 }
 
-const mapStateToProps = state => ({ingredients: state.ingredients})
+const mapStateToProps = state => ({ingredients: state.burger.ingredients})
 
 export default connect(mapStateToProps)(Checkout)

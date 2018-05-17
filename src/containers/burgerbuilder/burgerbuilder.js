@@ -7,20 +7,20 @@ import Spinner from '../../components/ui/spinner/spinner'
 import enableErrorCatching from '../../components/catcherrors/catcherrors'
 import axiosOrder from '../../axios-orders'
 import { connect } from 'react-redux'
-import * as actions from '../../store/actions'
+import * as actions from '../../store//actions/actions'
 
-class BurgerBuilder extends Component {
+export class BurgerBuilder extends Component {
     
     state = {
         purchasing: false,
-        sendingOrder: false,
-        ingredientLoadError: false
+        sendingOrder: false
     }
-
+    
     componentDidMount() {
-        /*axiosOrder.get('/Ingredients.json')
-        .then(res => this.setState({ingredients: res.data}))
-        .catch(err => this.setState({ingredientLoadError: true}))*/
+        this.props.initIngredients()
+        //make app think an order was not just sent so going through checkout will
+        //not redirect to this page early
+        this.props.resetJustSentOrder()
     }
 
     purchaseHandler = (bool) => {
@@ -32,7 +32,7 @@ class BurgerBuilder extends Component {
     }
     
     render() {
-        if (this.state.ingredientLoadError) return <p>Ingredient data could not be loaded.</p>
+        if (this.props.ingredientsLoadError) return <p>Ingredient data could not be loaded.</p>
         const ings = this.props.ingredients
         if (!ings) return <Spinner />
         const totalPriceString = this.props.totalPrice.toFixed(2)
@@ -49,6 +49,7 @@ class BurgerBuilder extends Component {
                 />
             )
         }
+        const isLogedIn = actions.isLoggedIn(this.props.authState)
         return (
             <React.Fragment>
                 <Burger
@@ -61,12 +62,13 @@ class BurgerBuilder extends Component {
                         {orderSummaryOrSpinner}
                     </Modal>
                 <BuildControls
+                    loggedIn={isLogedIn}
                     ingredients={ings.map(ing => {
                         return {name: ing.name, disableMinus: ing.count <= 0}
                     })}
                     addSubHandler={this.props.addSubIngredientHandler}
                     price={totalPriceString}
-                    orderButtonDisabled={noIngredients || purchasing}
+                    orderButtonDisabled={noIngredients || !isLogedIn || purchasing}
                     purchaseHandler={() => this.purchaseHandler(true)}
                 />
             </React.Fragment>
@@ -75,14 +77,19 @@ class BurgerBuilder extends Component {
 }
 
 const mapStateToProps = state => ({
-    ingredients: state.ingredients,
-    totalPrice: state.totalPrice
+    ingredients: state.burger.ingredients,
+    totalPrice: state.burger.totalPrice,
+    ingredientsLoadError: state.burger.ingredientsLoadError,
+    orderJustSent: state.order.orderJustSent,
+    authState: state.auth
 })
 
 const mapDispatchToProps = dispatch => ({
     addSubIngredientHandler: (name, willAdd) => {
-        dispatch({type: actions.ADD_SUB_INGREDIENT, name: name, willAdd: willAdd})
-    }
+        dispatch(actions.addSubIngredient(name, willAdd))
+    },
+    initIngredients: () => dispatch(actions.initIngredients()),
+    resetJustSentOrder: () => dispatch({type: actions.SET_JUST_SENT, value: false})
 })
 
 export default connect(mapStateToProps,mapDispatchToProps)(enableErrorCatching(BurgerBuilder, axiosOrder))

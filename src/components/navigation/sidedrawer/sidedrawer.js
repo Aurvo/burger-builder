@@ -12,9 +12,9 @@ const sidedrawer = (props) => {
     return (
         <React.Fragment>
             <Backdrop show={props.show} clicked={props.closeHandler}/>
-            <div className={attachedClasses}>
+            <div className={attachedClasses} onClick={props.closeHandler}>
                 <Logo style={{height: '11%', marginBottom: '32px'}}/>
-                <NavItems />
+                <NavItems loggedIn={props.loggedIn} />
             </div>
         </React.Fragment>
     )

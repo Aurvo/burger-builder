@@ -3,9 +3,12 @@ import classes from './contactdata.css'
 import Button from '../../../components/ui/button/button'
 import Input from '../../../components/ui/input/input'
 import Spinner from '../../../components/ui/spinner/spinner'
+import catchErrors from '../../../components/catcherrors/catcherrors'
 import axiosOrder from '../../../axios-orders'
-import { withRouter } from 'react-router-dom'
+import { withRouter, Redirect } from 'react-router-dom'
 import { connect } from 'react-redux'
+import * as actions from '../../../store/actions/actions'
+import * as Utils from '../../../utilities/formUtilities'
 
 class ContactData extends Component {
     constructor() {
@@ -14,7 +17,7 @@ class ContactData extends Component {
             const ename = event.target.name
             this.formFields[ename].value = event.target.value
             const fieldBools = {...this.state.validInvalidFields}
-            fieldBools[ename] = formFields[ename].isValid()
+            fieldBools[ename] = this.formFields[ename].isValid()
             this.setState({validInvalidFields: fieldBools})
         }
         const changeHandler = this.changeHandler
@@ -83,32 +86,9 @@ class ContactData extends Component {
                 isValid: function() {return true}
             }
         }
-        //configure formFields further: name and defaultValue
-        const formFields = this.formFields
-        for (let name in formFields) {
-            let field = formFields[name]
-            let atts = field.attributes
-            atts.name = name
-            atts.defaultValue = field.value
-        }
-        //configure state
-        let validInvalidFields = {}
-        for (let name in this.formFields) {
-            validInvalidFields[name] = this.formFields[name].isValid()
-        }
-        //state contains a field for each form element. For each field, the value is
-        //true if the field shodul display as valid and false if the field should display
-        //as invalid (note: empty fields will display as if valid)
-        this.state =  {
-            validInvalidFields: validInvalidFields,
-            sendingOrder: false
-        }
-    }
-
-    isFormValid = () => {
-        const fieldBools = this.state.validInvalidFields
-        for (let name in fieldBools) if (!fieldBools[name]) return false
-        return true
+        //edit form this.fileds to be potimal for the form and
+        //configure and return state (one field validInvalidFields)
+        this.state = Utils.finalizeFieldsAndState(this.formFields)
     }
 
     orderHandler = (event) => {
@@ -119,6 +99,7 @@ class ContactData extends Component {
             .forEach(el => ingsObj[el.name] = el.count)
         const formFields = this.formFields
         const order = {
+            userId: this.props.userId,
             ingredients: ingsObj,
             price: this.props.totalPrice,
             customer: {
@@ -129,36 +110,23 @@ class ContactData extends Component {
                 deliveryType: formFields.deliveryType.value
             }
         }
-        axiosOrder.post('/orders.json', order)
-            .then(response => {
-                this.setState({sendingOrder: false})
-                this.props.history.replace('/')
-            })
-            .catch(error => this.setState({sendingOrder: false}))
+        this.props.sendOrder(order, this.props.token)
     }
 
     render() {
+        //redirect to burger builder page if just sent order,
+        //status for justSentOrder is reset when that page is loaded
+        if (this.props.justSentOrder) return <Redirect to="/"/>
+        const validInvalidFields = this.state.validInvalidFields
         let formOrSpinner = <Spinner />
-        if (!this.state.sendingOrder) {
-            const formFields = []
-            const thisFormFields = this.formFields
-            for (let name in thisFormFields) {
-                const field = thisFormFields[name]
-                formFields.push(<Input
-                    key={name}
-                    elementType={field.elementType}
-                    label={field.label}
-                    attributes={field.attributes}
-                    options={field.options}
-                    invalid={!(this.state.validInvalidFields[name]
-                        || field.value === '')}
-                />)
-            }
+        if (!this.props.sendingOrder) {    
             formOrSpinner =  (
                 <form>
-                    {formFields}
+                    <Utils.FormFields
+                        fieldData={this.formFields}
+                        fieldBools={this.state.validInvalidFields} />
                     <Button type="Success" clicked={this.orderHandler}
-                        disabled={!this.isFormValid()}>ORDER</Button>
+                        disabled={!Utils.isFormValid(validInvalidFields)}>ORDER</Button>
                 </form>
             )
         }
@@ -172,8 +140,16 @@ class ContactData extends Component {
 }
 
 const mapStateToProps = state => ({
-    ingredients: state.ingredients,
-    totalPrice: state.totalPrice
+    ingredients: state.burger.ingredients,
+    totalPrice: state.burger.totalPrice,
+    sendingOrder: state.order.sendingOrder,
+    justSentOrder: state.order.justSentOrder,
+    token: state.auth.token,
+    userId: state.auth.userId
 })
 
-export default connect(mapStateToProps)(withRouter(ContactData))
+const mapDispatchToProps = dispatch => ({
+    sendOrder: (order, token) => dispatch(actions.dispatchOrder(order, token)),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(catchErrors(ContactData, axiosOrder)))

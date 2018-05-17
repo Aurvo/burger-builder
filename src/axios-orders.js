@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { firebaseProjectURL } from './firebase-project-constants'
 
 const instance = axios.create({
-    baseURL: 'https://burger-builder-ce2aa.firebaseio.com/'
+    baseURL: firebaseProjectURL
 })
 
 export default instance
