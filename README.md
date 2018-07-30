@@ -42,8 +42,8 @@ Ingredients:
     }
   }
 }
-3. Todo
-4. Todo
-
+3. Go to src/firebase-project-constants.js and enter your database url (located near  the top
+of the page after going to you firebase project and clicking 'Database') and authentication key
+(a.k.a. API Key - click on the gear icon next to 'Project Overview' then 'Project Settings').
 
 Bbootstrapped with Create React App.

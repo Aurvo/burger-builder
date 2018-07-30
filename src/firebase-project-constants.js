@@ -1,2 +1,2 @@
-export const firebaseProjectURL = 'https://burger-builder-ce2aa.firebaseio.com/'
-export const authKey = 'AIzaSyD7zDbCwZExBx56WDRAVXLdOihvYaikCGM'
+export const firebaseProjectURL = ''; //enter url here
+export const authKey = ''; //enter authentication key here
