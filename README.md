@@ -4,12 +4,11 @@ instructor (with some personal adjustments) in order to better understand React.
 did not make this by myself, I still believe it demonstrates a considerable understanding 
 of React and general web development related knowledge.
 
-Important: The firebase backend I had for the project may not exist at the time you view this.
-Making your own is super easy, though: create a google account, google "Firebase", on the Google
-Firebase site that shows up, start the free plan and create a Firebase project.
+#Important:
 
 When you have a project, follow these instructions to configure it and this burger bilder
-app to properly use it:
+app to properly use it. Some data about used for accessing my account's database is not included in this
+repo for security reasons. You will need ot set up your own:
 1. In the database section, create an array "Ingredients" that looks like this (order matters):
 Ingredients:
     0
